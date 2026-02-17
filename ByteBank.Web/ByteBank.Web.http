@@ -1,0 +1,6 @@
+@ByteBank.web_HostAddress = http://localhost:5249
+
+GET {{ByteBank.web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,28 @@
+[
+
+  {
+    "Id": "1111222233334444",
+    "Name": "Visa Gold",
+    "ExpireDate": "2031-01-01T00:00:00",
+    "BankId": 1,
+    "Amount": 5000.00,
+    "userid": "user1"
+  },
+  {
+    "Id": "5555666677778888",
+    "Name": "Master Platinum",
+    "ExpireDate": "2030-06-01T00:00:00",
+    "BankId": 2,
+    "Amount": 8000.00,
+    "userid": "user2"
+  },
+  {
+    "Id": "9999000011112222",
+    "Name": "Visa Classic",
+    "ExpireDate": "2029-12-01T00:00:00",
+    "BankId": 3,
+    "Amount": 12000.00,
+    "userid": "user3"
+  }
+
+]

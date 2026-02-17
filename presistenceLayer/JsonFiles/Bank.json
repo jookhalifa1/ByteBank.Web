@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "Name": "CIB",
+    "userid": "admin1"
+  },
+  {
+    "id": 2,
+    "Name": "NBE",
+    "userid": "admin2"
+  },
+  {
+    "id": 3,
+    "Name": "Banque Misr",
+    "userid": "admin3"
+  }
+]
