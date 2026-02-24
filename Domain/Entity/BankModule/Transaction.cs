@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entity.BankModule
 {
-     public class Transaction:BaseEntity<Guid>
+     public class Transactions:BaseEntity< string>
     {
         public string SenderCard { get; set; }
         [ForeignKey(nameof(SenderCard))]
@@ -30,7 +30,7 @@ namespace Domain.Entity.BankModule
 
         public decimal Total => Amount + Fee;
 
-        public bool status { get; set; }
+        public bool status { get; set; }=default(bool);
 
     }
 }

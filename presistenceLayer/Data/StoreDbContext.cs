@@ -28,7 +28,7 @@ namespace persistenceLayer.Data
         }
         public DbSet<Bank> banks { get; set; }
         public DbSet< CardBank> Cardbanks { get; set; }
-        public DbSet<Transaction> transactions { get; set; }
+        public DbSet<Transactions> transactions { get; set; }
          
 
 

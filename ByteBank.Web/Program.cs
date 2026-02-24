@@ -4,14 +4,17 @@ using Domain.Contract;
 using Domain.Contract.Repositories;
 using Domain.Entity.IdentityModule;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using persistenceLayer;
 using persistenceLayer.Data;
 using persistenceLayer.Repos;
 using Services;
 using Services.MappingProfile;
 using ServicesAbstraction;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ByteBank.web
@@ -42,10 +45,37 @@ namespace ByteBank.web
             builder.Services.AddScoped<IDataSeeding, DataSeeding>();
             builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<IdentityContext>();
             builder.Services.AddAutoMapper(c=>c.AddProfile<AddressProfile>());
+            builder.Services.AddAutoMapper(x => x.AddProfile<CardBankprofile>());
             builder.Services.AddScoped<IAuthenticationServicesAbstract,  AuthenticationServices>();
+            builder.Services.AddScoped<ICardBankServices, CardBankServices>();
+            builder.Services.AddScoped<ITransactionsServices, TransactionsServices>();
 
+
+
+            builder.Services.AddAuthentication(option =>
+            {
+                option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(opt =>
+            {
+                opt.SaveToken = true;
+
+                opt.TokenValidationParameters = new TokenValidationParameters()
+                {
+
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = builder.Configuration["JWTToken:Issuer"],
+                    ValidAudience = builder.Configuration["JWTToken:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTToken:SecretKey"]))
+                };
+
+            });
             var app = builder.Build();
             await app.DataSeedinAsync();
+            await app.DataSeedinIdentityAsync();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

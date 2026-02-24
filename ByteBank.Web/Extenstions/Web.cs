@@ -11,6 +11,13 @@ namespace ByteBank.web.Extenstions
              await dataseed.SeedingAsyn();
             return app;
         }
+        public static async Task<WebApplication> DataSeedinIdentityAsync(this WebApplication app)
+        {
+            var scop = app.Services.CreateAsyncScope();
+            var dataseed = scop.ServiceProvider.GetRequiredService<IDataSeeding>();
+            await dataseed.SeedingIdentityAsyn();
+            return app;
+        }
 
     }
 }

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace persistenceLayer.Configurations
 {
-    public class transactionsConfiguration : IEntityTypeConfiguration<Transaction>
+    public class transactionsConfiguration : IEntityTypeConfiguration<Transactions>
     {
-        public void Configure(EntityTypeBuilder<Transaction> builder)
+        public void Configure(EntityTypeBuilder<Transactions> builder)
         {
             builder.HasOne(x => x.SenderCardBank).WithMany().HasForeignKey(x => x.SenderCard).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.ReciverCardBank).WithMany().HasForeignKey(x => x.ReciverCard).OnDelete(DeleteBehavior.Restrict);

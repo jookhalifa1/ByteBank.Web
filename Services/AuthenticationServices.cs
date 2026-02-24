@@ -40,7 +40,9 @@ namespace Services
             if (userEmail is   null) return Result<UserDto>.Failure ( Error.Validation("Error While Validation"));
             var password = await userManager.CheckPasswordAsync(userEmail,login.Password);
             if (!password) return Result<UserDto>.Failure(Error.Validation("Error While Validation"));
-         
+           
+
+
             var user = new UserDto()
             {
                 Email =  userEmail.Email,
@@ -99,7 +101,8 @@ namespace Services
             var claim = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Email,user.Email),
-                new Claim(JwtRegisteredClaimNames.Name,user.UserName)
+                new Claim(JwtRegisteredClaimNames.Name,user.UserName),
+                new Claim(JwtRegisteredClaimNames.NameId,user.Id),
             };
             var role = await userManager.GetRolesAsync(user);
             foreach (var item in role)

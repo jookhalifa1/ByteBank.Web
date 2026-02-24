@@ -1,4 +1,5 @@
-﻿using Domain.Contract.Repositories;
+﻿using Domain;
+using Domain.Contract.Repositories;
 using Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using persistenceLayer.Data;
@@ -23,11 +24,25 @@ namespace persistenceLayer.Repos
             var x = await context.Set<TEntity>().ToListAsync();
             return x;
         }
-
+        public async Task<IEnumerable<TEntity>> GetAllSpecificationAsync( ISpecificationDesignPattern<TEntity,TKey> specification)
+        {
+            var baseQuery = context.Set<TEntity>();
+            var x = await SpecificationFactory.CreateQure(baseQuery, specification).ToListAsync();
+            return x;
+        }
 
         public async Task<TEntity> GetByIdAsync(TKey id)
         {
+          
             var x = await context.Set<TEntity>().FindAsync(id);
+            return x;
+        }
+
+        public async Task<TEntity> GetByIdAsync( ISpecificationDesignPattern<TEntity,TKey> specification)
+        {
+            var baseQuery = context.Set<TEntity>();
+
+            var x = await SpecificationFactory.CreateQure(baseQuery, specification).FirstOrDefaultAsync();
             return x;
         }
         public async Task AddAsync(TEntity entity)

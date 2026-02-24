@@ -12,8 +12,11 @@ namespace Domain.Contract.Repositories
     {
 
         public Task<IEnumerable<TEntity>> GetAllAsync();
+        public   Task<IEnumerable<TEntity>> GetAllSpecificationAsync(ISpecificationDesignPattern<TEntity, Tkey> specification);
 
         public Task<TEntity> GetByIdAsync(Tkey id);
+        public Task<TEntity> GetByIdAsync( ISpecificationDesignPattern<TEntity,Tkey> specification);
+
 
         public Task AddAsync(TEntity entity);
 

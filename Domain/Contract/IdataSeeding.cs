@@ -9,5 +9,6 @@ namespace Domain.Contract
     public interface IDataSeeding
     {
         Task SeedingAsyn();
+        Task SeedingIdentityAsyn();
     }
 }
