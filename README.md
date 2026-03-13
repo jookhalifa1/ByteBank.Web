@@ -15,7 +15,7 @@ It focuses on implementing secure financial transactions, API development, and d
 - Account management
 - Transfer money between users
 - Transaction history tracking
-- Real-time transaction updates (if using SignalR)
+- Real-time transaction updates (  using SignalR)
 - Secure backend APIs for handling financial operations
 
 ## Technologies Used
