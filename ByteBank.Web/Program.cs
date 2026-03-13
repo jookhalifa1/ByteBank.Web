@@ -2,6 +2,7 @@
 using ByteBank.web.Extenstions;
 using Domain.Contract;
 using Domain.Contract.Repositories;
+using Domain.Entity.BankModule;
 using Domain.Entity.IdentityModule;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using persistenceLayer;
 using persistenceLayer.Data;
 using persistenceLayer.Repos;
+ 
 using Services;
 using Services.MappingProfile;
 using ServicesAbstraction;
@@ -50,6 +52,9 @@ namespace ByteBank.web
             builder.Services.AddScoped<ICardBankServices, CardBankServices>();
             builder.Services.AddScoped<ITransactionsServices, TransactionsServices>();
 
+            
+
+
 
 
             builder.Services.AddAuthentication(option =>
@@ -72,9 +77,23 @@ namespace ByteBank.web
                 };
 
             });
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy => policy.AllowAnyOrigin()
+                                    .AllowAnyMethod()
+                                    .AllowAnyHeader());
+            });
+            builder.Services.AddSignalR();
             var app = builder.Build();
+
+            app.UseStaticFiles();
+
             await app.DataSeedinAsync();
             await app.DataSeedinIdentityAsync();
+
+            
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -89,6 +108,7 @@ namespace ByteBank.web
 
 
             app.MapControllers();
+            app.MapHub<TransactionHub>("/transactionHub");
 
             app.Run();
         }

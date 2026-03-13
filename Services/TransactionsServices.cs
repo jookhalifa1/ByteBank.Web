@@ -3,6 +3,7 @@ using Domain.Contract.Repositories;
 using Domain.Entity.BankModule;
 using Domain.Entity.IdentityModule;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Services.Specificatinos;
 using ServicesAbstraction;
 using Shared;
@@ -22,18 +23,20 @@ namespace Services
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly ICardBankServices cardBankServices;
+        private readonly IHubContext<TransactionHub> hubContext;
 
-        public TransactionsServices( UserManager<ApplicationUser> userManager,IUnitOfWork unitOfWork,IMapper mapper,ICardBankServices cardBankServices)
+        public TransactionsServices( UserManager<ApplicationUser> userManager,IUnitOfWork unitOfWork,IMapper mapper,ICardBankServices cardBankServices,IHubContext<TransactionHub> hubContext)
         {
             this.userManager = userManager;
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.cardBankServices = cardBankServices;
+            this.hubContext = hubContext;
         }
 
 
 
-                public async Task<Result<ReturnResultTrans>> CreatTransAsync(string id, TransactionDto transaction)
+        public async Task<Result<ReturnResultTrans>> CreatTransAsync(string id, TransactionDto transaction)
                 {
 
                     var repo = unitOfWork.GetRepo<Transactions, string>();
@@ -81,13 +84,26 @@ namespace Services
             trans.Id=Guid.NewGuid().ToString(); 
             trans.Fee=fee;
             trans.status=true;
+
             var result=mapper.Map <ReturnResultTrans>(trans);
                         await repo.AddAsync(trans);
                     var x= await unitOfWork.SaveChangeRepoAsync();
-                    if(x>0)
-                    return Result<ReturnResultTrans>.Ok( result);
-                    else
-                       return Error.Failure("Failed to create transaction");
+
+
+
+
+
+            if (x > 0)
+            {
+
+                await hubContext.Clients
+     .Group(trans.SenderCardBank.BankId.ToString())
+     .SendAsync("NewTransaction", trans);
+
+                return Result<ReturnResultTrans>.Ok(result);
+            }
+            else
+                return Error.Failure("Failed to create transaction");
 
 
 
