@@ -45,7 +45,12 @@ namespace ByteBank.web
             });
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IDataSeeding, DataSeeding>();
-            builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<IdentityContext>();
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+            })
+ .AddEntityFrameworkStores<IdentityContext>()
+ .AddDefaultTokenProviders(); // ده مهم 
             builder.Services.AddAutoMapper(c=>c.AddProfile<AddressProfile>());
             builder.Services.AddAutoMapper(x => x.AddProfile<CardBankprofile>());
             builder.Services.AddScoped<IAuthenticationServicesAbstract,  AuthenticationServices>();
@@ -53,7 +58,7 @@ namespace ByteBank.web
             builder.Services.AddScoped<ITransactionsServices, TransactionsServices>();
 
             
-
+            builder.Services.AddScoped<IEmailServices,EmailServices>();
 
 
 
@@ -86,6 +91,7 @@ namespace ByteBank.web
                                     .AllowAnyHeader());
             });
             builder.Services.AddSignalR();
+            
             var app = builder.Build();
 
             app.UseStaticFiles();

@@ -24,33 +24,69 @@ namespace Services
         private readonly IMapper mapper;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly IConfiguration configuration;
+        private readonly IEmailServices emailServices;
 
-        public AuthenticationServices( UserManager< ApplicationUser> userManager,IMapper mapper,RoleManager<IdentityRole> roleManager,IConfiguration configuration)
+        public AuthenticationServices( UserManager< ApplicationUser> userManager,IMapper mapper,RoleManager<IdentityRole> roleManager,IConfiguration configuration,IEmailServices emailServices)
         {
             this.userManager = userManager;
             this.mapper = mapper;
             this.roleManager = roleManager;
             this.configuration = configuration;
+            this.emailServices = emailServices;
         }
         public async Task<Result<UserDto>> loginAsync(LoginDto login)
         {
 
 
-             var userEmail= await userManager.FindByEmailAsync(login.Email);
-            if (userEmail is   null) return Result<UserDto>.Failure ( Error.Validation("Error While Validation"));
-            var password = await userManager.CheckPasswordAsync(userEmail,login.Password);
+             var user= await userManager.FindByEmailAsync(login.Email);
+            if (user is   null) return Result<UserDto>.Failure ( Error.Validation("Error While Validation"));
+            var password = await userManager.CheckPasswordAsync(user,login.Password);
             if (!password) return Result<UserDto>.Failure(Error.Validation("Error While Validation"));
-           
 
 
-            var user = new UserDto()
+
+            //var userdto = new UserDto()
+            //{
+            //    Email =   user .Email,
+            //    DisplayName = user.UserName,
+            //    Token = await CreateTokenAsync(user)
+
+            //};
+            //return Result<UserDto>.Ok(userdto);
+
+            var token = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
+            await emailServices.SendEmailAsync(
+                user.Email,
+                "OTP Verification (ByteBank.Web)",
+                $"Your login  OTP From ByteBank.Web is {token}"
+                );
+            return Result<UserDto>.Ok(new UserDto
             {
-                Email =  userEmail.Email,
-                DisplayName = userEmail.UserName,
-                Token = await  CreateTokenAsync(userEmail)
+                Email = user.Email,
+                DisplayName = user.UserName,
+                Token="Please Go to VerfiyOTp To Recive Your Token :)"
+            });
 
+        }
+
+
+
+        public async Task<Result<UserDto>> VerifyOtpAsync(string email, string code)
+        {
+            var user =await userManager.FindByEmailAsync (email);
+            if (user is null)
+                return   Result<UserDto>.Failure(Error.NotFound());
+            var Isvalid = await userManager.VerifyTwoFactorTokenAsync(user, "Email", code);
+            if (!Isvalid)
+            {
+                return Result<UserDto>.Failure(Error.NotFound());   
+            }
+            return new UserDto()
+            {
+                Email = user.Email,
+                DisplayName = user.UserName,
+                Token = await CreateTokenAsync(user)
             };
-            return Result<UserDto>.Ok(user);
 
         }
 
@@ -87,7 +123,7 @@ namespace Services
 
         }
 
-
+       
 
         private async Task<string> CreateTokenAsync( ApplicationUser user)
         {

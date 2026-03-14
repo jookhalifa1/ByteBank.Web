@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.AccessControl;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,6 +30,16 @@ namespace Presentation.Controllers
 
             return HandelRequest(result);
         }
+        [HttpPost("VerfiyOTP")]
+
+        public async Task<ActionResult<UserDto>> VerfiyOTP( string  email,string code)
+        {
+           
+            
+            var result = await authenticationServices.VerifyOtpAsync(   email, code);
+            return HandelRequest(result);
+        }
+
 
 
         [HttpPost("Register")]
