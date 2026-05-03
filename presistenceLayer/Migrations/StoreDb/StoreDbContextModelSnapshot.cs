@@ -73,7 +73,7 @@ namespace persistenceLayer.Migrations.StoreDb
                     b.ToTable("Cardbanks");
                 });
 
-            modelBuilder.Entity("Domain.Entity.BankModule.Transaction", b =>
+            modelBuilder.Entity("Domain.Entity.BankModule.Transactions", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -120,7 +120,7 @@ namespace persistenceLayer.Migrations.StoreDb
                     b.Navigation("bank");
                 });
 
-            modelBuilder.Entity("Domain.Entity.BankModule.Transaction", b =>
+            modelBuilder.Entity("Domain.Entity.BankModule.Transactions", b =>
                 {
                     b.HasOne("Domain.Entity.BankModule.CardBank", "ReciverCardBank")
                         .WithMany()

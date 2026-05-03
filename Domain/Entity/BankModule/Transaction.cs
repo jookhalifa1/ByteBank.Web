@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace Domain.Entity.BankModule
 {
-     public class Transactions:BaseEntity< string>
+     public class Transactions:BaseEntity< Guid>
     {
-        public string SenderCard { get; set; }
+        public  string SenderCard { get; set; }
         [ForeignKey(nameof(SenderCard))]
         public CardBank SenderCardBank { get; set; }
 
 
-        public string ReciverCard { get; set; }
+        public  string ReciverCard { get; set; }
 
         [ForeignKey(nameof(ReciverCard))]
         public CardBank ReciverCardBank { get; set; }

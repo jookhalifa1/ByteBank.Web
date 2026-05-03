@@ -1,0 +1,47 @@
+﻿@page "/dashboard"
+
+
+@inject AuthenticationStateProvider AuthStateProvider
+
+<h3 class="mb-4">Dashboard</h3>
+
+<div class="card shadow p-4">
+
+    @if (IsAdmin)
+    {
+        <h5 class="text-danger">Admin Panel</h5>
+
+        <NavLink class="btn btn-danger w-100 mb-2" href="/admin/cards">
+            View All Cards (Admin)
+        </NavLink>
+    }
+    else
+    {
+        <h5 class="text-primary">User Panel</h5>
+
+        <NavLink class="btn btn-primary w-100 mb-2" href="/cards/mycards">
+            My Card
+        </NavLink>
+
+        <NavLink class="btn btn-success w-100 mb-2" href="/cards/createcard">
+            Create Card
+        </NavLink>
+
+        <NavLink class="btn btn-warning w-100" href="/cards/cardbyid">
+            Get Card By ID
+        </NavLink>
+    }
+
+</div>
+
+@code {
+    private bool IsAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        IsAdmin = user.IsInRole("Admin");
+    }
+}

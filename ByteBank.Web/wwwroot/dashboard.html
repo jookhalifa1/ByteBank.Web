@@ -90,8 +90,7 @@
         const tableBody = document.querySelector("#transactionsTable tbody");
 
         // JWT token (fixed for testing)
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Impvb1NheWVkQGdtYWlsLmNvbSIsIm5hbWUiOiJKb29TYXllZCIsIm5hbWVpZCI6IjY5MjE2NzhkLWQ1MzMtNDA2Mi1hYWY3LTJjNjlmMDNkMzkzZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzczMzY5ODM4LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo3MTc1IiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzE3NSJ9.ELUmekmuyEz-eDPMX-kXcaVS2S3nwumJ69BFRbutcWk";
-
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Impvb1NheWVkQGdtYWlsLmNvbSIsIm5hbWUiOiJKb29TYXllZCIsIm5hbWVpZCI6IjY5MjE2NzhkLWQ1MzMtNDA2Mi1hYWY3LTJjNjlmMDNkMzkzZSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzczNDQzMTU0LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo3MTc1IiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzE3NSJ9.biHyCI0bn8RPu7VjgROw_3jDYWNnOl94y3GJ-gXlDpQ";
         if (!token) {
             tableBody.innerHTML = "<tr><td colspan='7'>Please log in first to see transactions.</td></tr>";
         }
@@ -162,7 +161,7 @@
         connection.start()
             .then(() => {
                 console.log("Connected to SignalR Hub");
-
+              
                 // Automatically join group based on bankId from server or default
                 const bankId = "1"; // Replace with actual bankId from user if available
                 connection.invoke("JoinGroup", bankId)

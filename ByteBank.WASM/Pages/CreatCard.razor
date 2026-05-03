@@ -1,0 +1,277 @@
+﻿@page "/CreatCard"
+@inject CardBankServices services
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@layout MainLayout
+
+
+<div class="page">
+
+    @if (!flag)
+    {
+          
+
+
+
+        <div class="card-ui">
+
+            <h2>Create Card 💳</h2>
+            <p class="sub">Add a new bank card to your account</p>
+
+            <EditForm Model="card" OnValidSubmit="saved">
+                <DataAnnotationsValidator />
+
+                <div class="field">
+                    <label>Name</label>
+                    <InputText @bind-Value="card.Name" class="input" />
+                     <ValidationMessage For="()=>card.Name" />
+                </div>
+
+                <div class="field">
+                    <label>Amount</label>
+                    <InputNumber @bind-Value="card.Amount" class="input" />
+                     <ValidationMessage For="()=>card.Amount" />
+
+                </div>
+
+                <div class="field">
+                    <label>Bank Id</label>
+                     <InputSelect @bind-Value="card.BankId" class="input"  >
+                        <option value="">Select Bank</option>
+                        <option value="1">CIB</option>
+                        <option value="2">NBE</option>
+                        <option value="3">Banque Misr</option>
+                    </InputSelect>
+                     <ValidationMessage For="()=>card.BankId" />
+                      
+
+
+                </div>
+
+                <button class="btn">
+                    Save Card
+                </button>
+
+            </EditForm>
+
+        </div>
+    }
+    else
+    {
+        <div class="success-card">
+            <h2>Card Created 🎉</h2>
+            <p>Your card has been created successfully</p>
+
+            <div class="info">
+                <p><b>Name:</b> @result.Name</p>
+                <p><b>CardNumber:</b> @result.Id</p>
+                <p><b>Amount:</b> @result.Amount</p>
+                <p><b>Bank:</b> @result.bank.Name</p>
+            </div>
+
+            <button class="btn" @onclick="GoHome">
+                GoHome
+            </button>
+             <button class="btn" @onclick="CreatTransaction">
+                CreatTransaction
+            </button>
+        </div>
+    }
+
+</div>
+@if (result1?.Errors != null)
+{
+    foreach (var error in result1.Errors)
+    {
+        <div class="text-danger">
+            <b>@error.Key</b>
+
+            @foreach (var msg in error.Value)
+            {
+                <div>- @msg</div>
+            }
+        </div>
+    }
+}
+
+
+@code {
+
+    public CreatBankDto card { get; set; } = new CreatBankDto();
+    public ResultCreateCardDto result { get; set; } 
+    public ApiResult< ResultCreateCardDto> result1 { get; set; } 
+    public string token { get; set; }
+    public bool flag = false;
+    [Inject]
+    public NavigationManager navigation { get; set; }
+
+    public async Task  saved()
+    {
+        //  Console.WriteLine("iam Here");
+        token = await  sessionStorage.GetItemAsync<string>("Token");
+
+        services.SetToken(token);
+
+        result1 = await services.createBank(card);
+
+        if (result1.IsSuccess)
+        {
+            result = result1.Data;
+            if (result is not null)
+            {
+                flag = true;
+                StateHasChanged();
+            }
+        }
+
+
+
+    }
+
+    public  void GoHome() => navigation.NavigateTo("/ByteBankHome");
+
+    public void CreatTransaction() => navigation.NavigateTo("/CreateTransaction");
+}
+
+<style>
+ /* PAGE */
+.page {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f7fb;
+    font-family: 'Segoe UI';
+}
+
+   /* NAVBAR */
+    .navbar {
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .brand {
+        font-weight: bold;
+        font-size: 20px;
+        color: #2563eb;
+    }
+
+    /* LINKS */
+    a {
+        text-decoration: none;
+        color: #374151;
+    }
+
+        a:hover {
+            color: #2563eb;
+        }
+
+    /* HERO */
+    .hero h1 {
+        font-weight: 700;
+    }
+
+    .hero p {
+        color: #6b7280;
+    }
+
+    /* SECTION HEADER */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 10px;
+    }
+
+        .section-header h3 {
+            font-weight: 600;
+        }
+
+/* CARD */
+.card-ui {
+    width: 380px;
+    background: white;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    animation: fadeUp 0.5s ease;
+}
+
+.card-ui h2 {
+    margin-bottom: 5px;
+}
+
+.sub {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* INPUT */
+.field {
+    margin-bottom: 15px;
+}
+
+label {
+    font-size: 13px;
+    color: #374151;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    outline: none;
+    transition: 0.2s;
+}
+
+.input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* BUTTON */
+.btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* SUCCESS */
+.success-card {
+    width: 380px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    animation: fadeUp 0.5s ease;
+}
+
+.success-card h2 {
+    color: #16a34a;
+}
+
+.info {
+    text-align: left;
+    margin: 15px 0;
+    color: #374151;
+}
+
+/* ANIMATION */
+@@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+</style>

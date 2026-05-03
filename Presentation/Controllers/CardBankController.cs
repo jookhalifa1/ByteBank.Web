@@ -28,7 +28,7 @@ namespace Presentation.Controllers
             return HandelRequest(result);
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<CardDto>> GetById(string id)
+        public async Task<ActionResult<ResultCreateCardDto>> GetById(  string id)
         {
             var result=await bankServices.GetByIdAsync(id);
             return HandelRequest(result);   
@@ -36,7 +36,7 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> CreatCardBank(CreatBankDto creatBank)
+        public async Task<ActionResult<ResultCreateCardDto>> CreatCardBank(CreatBankDto creatBank)
         {
             var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await bankServices.CreateCardAsync(id, creatBank);
@@ -45,8 +45,8 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("My-Cards")]
-        
-        public async Task<ActionResult< IEnumerable< CardDto>>> GetAllById()
+       
+        public async Task<ActionResult< IEnumerable< ResultCreateCardDto>>> GetAllById()
         {
             var userid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await bankServices.GetAllById(userid);

@@ -31,38 +31,56 @@ namespace Services
             this.userManager = userManager;
         }
 
-        
+         
 
-        public async Task<Result> CreateCardAsync( string  id,CreatBankDto creatBankDto)
+        public async Task<Result<ResultCreateCardDto>> CreateCardAsync( string  id,CreatBankDto creatBankDto)
         {
             var User = await userManager.FindByIdAsync(id);
             if (User == null)
-                return Result.Failure(Error.NotFound("User not found"));
+                return Result<ResultCreateCardDto>.Failure(Error.NotFound("User not found"));
             
             
 
-            var carddto = mapper.Map<CardBank>(creatBankDto);
+            var card  = mapper.Map<CardBank>(creatBankDto);
             var random=new Random();
-            carddto.Id = string.Concat(Enumerable.Range(0, 16).Select(_ => random.Next(0, 10).ToString())); 
-                
-            carddto.userid = User.Id;
+            card .Id = string.Concat(Enumerable.Range(0, 16)
+    .Select(_ => random.Next(0, 10).ToString()));
 
-          await  unitOfWork.GetRepo<CardBank, string>().AddAsync(carddto);
+            card .userid = User.Id;
+
+
+
+          await  unitOfWork.GetRepo<CardBank,  string>().AddAsync(card );
            var x=  await unitOfWork.SaveChangeRepoAsync();
-            if(x>0)
+            var bank = await unitOfWork
+   .GetRepo<Bank, int>()
+   .GetByIdAsync(card.BankId);
+
+            var bankdto = mapper.Map<BankDto>(bank);
+            if (x>0)
             {
-                return Result.Ok();
+
+                var result = new ResultCreateCardDto(
+                    id: card.Id,
+                    card.Name,
+                    card.ExpireDate,
+                    card.BankId,
+                    card.Amount,
+                    bankdto
+
+                    );
+                return Result<ResultCreateCardDto>.Ok(result);
             }
             else
-                return Result.Failure( Error.UnAuthorized());
+                return Result<ResultCreateCardDto>.Failure( Error.UnAuthorized());
 
         }
 
         public async Task<Result<IEnumerable<CardDto>>> GetAllAsync()
         {
             var CardSpec = new CardBankSpecification();
-            var result= await unitOfWork.GetRepo<CardBank,string>().GetAllSpecificationAsync(CardSpec);
-
+            var result= await unitOfWork.GetRepo<CardBank, string>().GetAllSpecificationAsync(CardSpec);
+                
             if (result is null) return Error.Failure();
             var carddto = mapper.Map<IEnumerable<CardDto>>(result);
 
@@ -71,7 +89,7 @@ namespace Services
 
         }
 
-        public async Task<Result<IEnumerable<CardDto>>> GetAllById(string Userid)
+        public async Task<Result<IEnumerable<ResultCreateCardDto>>> GetAllById(string Userid)
         {
             var user = await userManager.FindByIdAsync(Userid);
             if(user is null)
@@ -79,22 +97,22 @@ namespace Services
                 return Error.UnAuthorized();
             }
 
-            var cardspec = new CardBankSpecification(user.Id,true);
+            var cardspec = new CardBankSpecification(user.Id,true );
              
-            var result = await unitOfWork.GetRepo<CardBank, string>().GetAllSpecificationAsync(cardspec);
-            var resultdto= mapper.Map<IEnumerable< CardDto>>(result);
-            return Result<IEnumerable<CardDto>>.Ok( resultdto);
+            var result = await unitOfWork.GetRepo<CardBank,   string>().GetAllSpecificationAsync(cardspec);
+            var resultdto= mapper.Map<IEnumerable< ResultCreateCardDto>>(result);
+            return Result<IEnumerable<ResultCreateCardDto>>.Ok( resultdto);
         }
 
-        public async Task<Result<CardDto>> GetByIdAsync(string id)
+        public async Task<Result<ResultCreateCardDto>> GetByIdAsync(  string id)
         {
-            var cardspec = new CardBankSpecification(id,false);
+            var cardspec = new CardBankSpecification(id,false );
            
             var result = await unitOfWork.GetRepo<CardBank, string>().GetByIdAsync(  cardspec);
 
-            var r = mapper.Map<CardDto>(result);
+            var r = mapper.Map<ResultCreateCardDto>(result);
              if(result is null ) return Error.Failure();
-            return Result<CardDto>.Ok(r);
+            return Result<ResultCreateCardDto>.Ok(r);
 
         }
     }

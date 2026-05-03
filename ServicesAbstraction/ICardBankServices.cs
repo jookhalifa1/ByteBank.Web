@@ -13,13 +13,13 @@ namespace ServicesAbstraction
     {
         public Task<Result<IEnumerable<CardDto>>> GetAllAsync();
 
-        public Task<Result<CardDto>> GetByIdAsync(string id);
+        public Task<Result<ResultCreateCardDto>> GetByIdAsync( string id);
 
 
 
-        public Task<Result> CreateCardAsync( string id, CreatBankDto creatBankDto);
+        public Task<Result<ResultCreateCardDto>> CreateCardAsync( string id, CreatBankDto creatBankDto);
 
-        public Task<Result<IEnumerable<CardDto>>> GetAllById(string id);
+        public Task<Result<IEnumerable<ResultCreateCardDto>>> GetAllById(string id);
 
 
     }

@@ -1,0 +1,176 @@
+﻿@page "/"
+@layout AuthLayout
+
+@inject AuthenticationServieces servieces
+@inject NavigationManager nav
+
+<div class="register-container">
+
+    <div class="register-card">
+
+        <h2>Create Account</h2>
+        <p>Join ByteBank and manage your money easily</p>
+
+        <EditForm Model="registerDto" OnValidSubmit="Register">
+            <DataAnnotationsValidator/>
+
+            @if (result?.Errors != null)
+            {
+                <div class="toast-error">
+                    @foreach (var error in result.Errors)
+                    {
+                        <div>⚠ @error.Key</div>
+                        @foreach (var msg in error.Value)
+                        {
+                            <div>⚠ @msg</div>
+                        }
+                    }
+                </div>
+            }
+
+            <InputText class="input" @bind-Value="registerDto.Name" placeholder="Full Name" />
+            <ValidationMessage For="()=>registerDto.Name" ></ValidationMessage>
+            <InputText class="input" @bind-Value="registerDto.Email" placeholder="Email" />
+            <ValidationMessage For="() => registerDto.Email"></ValidationMessage>
+
+            <InputText class="input" @bind-Value="registerDto.Phone" placeholder="Phone" />
+            <ValidationMessage For="() => registerDto.Phone"></ValidationMessage>
+
+            <InputText class="input" @bind-Value="registerDto.address.city" placeholder="City" />
+            <ValidationMessage For="() => registerDto.address"></ValidationMessage>
+
+            <InputText class="input" @bind-Value="registerDto.address.Country" placeholder="Country" />
+            <ValidationMessage For="() => registerDto.address"></ValidationMessage>
+
+            <InputText class="input" @bind-Value="registerDto.address.street" placeholder="Street" />
+            <ValidationMessage For="() => registerDto.address"></ValidationMessage>
+             
+            <InputText class="input" type="password" @bind-Value="registerDto.Password" placeholder="Password" />
+            <ValidationMessage For="() => registerDto.Password"></ValidationMessage>
+
+            <button type="submit" class="btn-primary">Sign Up</button>
+
+        </EditForm>
+
+        <button class="btn-secondary" @onclick="GoToLogin">
+            Already have an account? Login
+        </button>
+
+    </div>
+   
+
+</div>
+
+@code {
+    public UserDto user { get; set; } = default!;
+    public RegisterDto registerDto = new RegisterDto
+    {
+        address = new AddressDto()
+    };
+    public ApiResult<UserDto>? result { get; set; }
+    private async Task Register()
+    {
+        result = await servieces.SignUp(registerDto);
+        if (result.IsSuccess)
+        {
+            user = result.Data;
+            await sessionStorage.SetItemAsync("Token", user.Token);
+
+            nav.NavigateTo("/ByteBankHome");
+        }
+
+       
+       
+    }
+
+    private void GoToLogin()
+    {
+        nav.NavigateTo("/login");
+    }
+}
+<style>
+    .register-container {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f5f7fb;
+        font-family: 'Segoe UI';
+    }
+
+    .register-card {
+        width: 380px;
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+        .register-card h2 {
+            margin-bottom: 5px;
+            color: #2563eb;
+        }
+
+        .register-card p {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+    .input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        outline: none;
+    }
+
+        .input:focus {
+            border-color: #2563eb;
+        }
+
+    .btn-primary {
+        width: 100%;
+        padding: 10px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+    .btn-secondary {
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
+        background: transparent;
+        border: 1px solid #2563eb;
+        color: #2563eb;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+        .btn-secondary:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+
+    .toast-error {
+        margin-top: 10px;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 10px 15px;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        animation: slideUp 0.3s ease;
+        font-size: 14px;
+    }
+</style>

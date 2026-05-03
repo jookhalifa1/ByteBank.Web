@@ -1,0 +1,212 @@
+﻿@page "/ShowAllTrans"
+@using Shared
+
+@inject CardBankServices cardBankServices
+@inject TransactionServicess servicess
+
+<div class="card-ui">
+
+    <h3>Show Transactions 📊</h3>
+
+    <!-- SELECT CARD -->
+    <div class="field">
+        <label>Select Card</label>
+        <InputSelect @bind-Value="cardid" class="input">
+            <option value="">Select Card</option>
+            @foreach (var card in Mycards)
+            {
+                <option value="@card.Id">@card.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+
+    <!-- BUTTON -->
+    <button class="btn" @onclick="Save" disabled="@string.IsNullOrEmpty(cardid)">
+        Show Transactions
+    </button>
+
+</div>
+
+<!-- ERROR -->
+@if (transResult?.Errors != null)
+{
+    <div class="error-box">
+        @foreach (var err in transResult.Errors)
+        {
+            @foreach (var msg in err.Value)
+            {
+                <div>• @msg</div>
+            }
+        }
+    </div>
+}
+
+<!-- UI STATES -->
+@if (!flag)
+{
+    <div class="empty-box">
+        Select a card then click "Show Transactions" 👇
+    </div>
+}
+else if (loading)
+{
+    <div class="loading">Loading...</div>
+}
+else if (trans == null || !trans.Any())
+{
+    <div class="empty-box">No transactions found 💳</div>
+}
+else
+{
+    <table class="custom-table">
+
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Receiver</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Fee</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var tran in trans)
+            {
+                <tr>
+                    <td>@tran.SenderCard</td>
+                    <td>@tran.ReciverCard</td>
+                    <td>@tran.Amount</td>
+
+                    <td>
+                        <span class="@(tran.status ? "ok" : "fail")">
+                            @(tran.status ? "Success" : "Failed")
+                        </span>
+                    </td>
+
+                    <td>@tran.Fee</td>
+                    <td>@tran.Total</td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+}
+
+@code {
+    public IEnumerable<ResultCreateCardDto> Mycards { get; set; } = new List<ResultCreateCardDto>();
+    public ApiResult<IEnumerable<ResultCreateCardDto>> cardresult { get; set; }
+
+    public   string cardid { get; set; }
+
+    public IEnumerable<ReturnResultTrans> trans { get; set; } = new List<ReturnResultTrans>();
+    public ApiResult<IEnumerable<ReturnResultTrans>> transResult { get; set; }
+
+    public bool flag = false;
+    public bool loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cardresult = await cardBankServices.GetAllUser();
+
+        if (cardresult?.IsSuccess == true)
+        {
+            Mycards = cardresult.Data;
+        }
+    }
+
+    public async Task Save()
+    {
+        if (string.IsNullOrEmpty(cardid))
+            return;
+
+        flag = true;
+        loading = true;
+        trans = null;
+
+        transResult = await servicess.GetAllCard(cardid);
+
+        if (transResult?.IsSuccess == true && transResult.Data != null)
+        {
+            trans = transResult.Data;
+        }
+        else
+        {
+            trans = new List<ReturnResultTrans>();
+        }
+
+        loading = false;
+    }
+}
+        <style>
+
+            .card-ui {
+    width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+
+.custom-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: white;
+}
+
+.custom-table th {
+    background: #2563eb;
+    color: white;
+    padding: 10px;
+}
+
+.custom-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.ok {
+    color: green;
+}
+
+.fail {
+    color: red;
+}
+
+.error-box {
+    background: #fee2e2;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+}
+
+.empty-box {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.loading {
+    text-align: center;
+}
+        </style>
