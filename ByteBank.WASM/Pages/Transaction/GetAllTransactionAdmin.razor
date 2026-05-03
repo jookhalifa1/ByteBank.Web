@@ -1,0 +1,116 @@
+﻿@using Shared
+
+ 
+ 
+    <table class="table custom-table">
+
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Receiver</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Fee</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var tran in trans)
+            {
+                <tr>
+                    <td>@tran.SenderCard</td>
+                    <td>@tran.ReciverCard</td>
+                    <td>@tran.Amount</td>
+
+                    <td>
+                        <span class="@(tran.status ==  true ? "ok" : "fail")">
+                            @tran.status
+                        </span>
+                    </td>
+
+                    <td>@tran.Fee</td>
+                    <td>@tran.Total</td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+ 
+
+@code {
+    [Parameter]
+    public  List<ReturnResultTrans> trans { get; set; }
+
+    protected override void OnParametersSet()
+{
+    StateHasChanged();
+}
+
+
+}
+<style>
+
+    /* EMPTY STATE */
+.empty {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* TABLE */
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    animation: fadeUp 0.3s ease;
+}
+
+/* HEADER */
+.custom-table thead {
+    background: #2563eb;
+    color: white;
+}
+
+/* CELLS */
+.custom-table th,
+.custom-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+/* ROW HOVER */
+.custom-table tbody tr:hover {
+    background: #f1f5f9;
+}
+
+/* STATUS */
+.ok {
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.fail {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* ANIMATION */
+@@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+ 

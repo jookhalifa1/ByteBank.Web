@@ -1,0 +1,66 @@
+﻿@inherits LayoutComponentBase
+
+<div class="app-layout">
+
+    <!-- NAVBAR -->
+    <nav class="navbar px-4 py-3 shadow-sm">
+        <a class="brand">ByteBank 💳</a>
+
+        <div class="ms-auto d-flex gap-3">
+            <NavLink href="/ByteBankHome" class="nav-link">Home</NavLink>
+            <NavLink href="/CreatCard" class="nav-link">Create Card</NavLink>
+            <NavLink href="/CreateTransaction" class="nav-link">Transactions</NavLink>
+        </div>
+    </nav>
+
+    <!-- BODY -->
+    <main class="content-area">
+        @Body
+    </main>
+
+</div>
+<style>
+    .app-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f4f7fb;
+    }
+
+    /* NAVBAR */
+    .navbar {
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+    }
+
+    .brand {
+        font-weight: bold;
+        font-size: 20px;
+        color: #2563eb;
+    }
+
+    /* LINKS */
+    .nav-link {
+        text-decoration: none;
+        color: #374151;
+        font-weight: 500;
+    }
+
+        .nav-link:hover {
+            color: #2563eb;
+        }
+
+        /* ACTIVE LINK (مهم جدًا) */
+        .nav-link.active {
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+    /* CONTENT */
+    .content-area {
+        flex: 1;
+        padding: 20px;
+    }
+</style>

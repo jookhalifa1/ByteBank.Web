@@ -39,20 +39,20 @@ namespace Services
         public async Task<Result<ReturnResultTrans>> CreatTransAsync(string id, TransactionDto transaction)
                 {
 
-                    var repo = unitOfWork.GetRepo<Transactions, string>();
+                    var repo = unitOfWork.GetRepo<Transactions,  Guid>();
                     var user = await userManager.FindByIdAsync(id);
                     if (user == null)
                         return Error.NotFound($"{id} is not found ");
 
 
-                    var cardbanksender = await  unitOfWork.GetRepo<CardBank, string>().GetByIdAsync(transaction.SenderCard);
+                    var cardbanksender = await  unitOfWork.GetRepo<CardBank,   string>().GetByIdAsync(transaction.SenderCard);
             if (cardbanksender is null) return Error.NotFound($"{transaction.SenderCard} is not found ");
 
                     if (user.Id != cardbanksender.userid) return Error.Forbidden($"you are not allowed to access this card {transaction.SenderCard} ");
 
-                    var cardbankresiver = await unitOfWork.GetRepo<CardBank,string>().GetByIdAsync(transaction.ReciverCard) ;
-                    if (cardbankresiver is null) return Error.NotFound($"{transaction.ReciverCard} is not found ");
-                    if (transaction.SenderCard == transaction.ReciverCard)
+                    var cardbankresiver = await unitOfWork.GetRepo<CardBank,  string>().GetByIdAsync(transaction.ReciverCard) ;
+                    if (cardbankresiver is null) return Error.Validation("Receiver card does not exist. Please check the card number.");
+            if (transaction.SenderCard == transaction.ReciverCard)
                         return Error.Validation("You can't transfer to the same card");
 
 
@@ -71,17 +71,17 @@ namespace Services
                        cardbanksender.Amount-=transaction.Amount;
                         cardbanksender.Amount-=fee;
                         
-            unitOfWork.GetRepo<CardBank, string>().Update(cardbanksender);
+            unitOfWork.GetRepo<CardBank,   string>().Update(cardbanksender);
            
 
                        
                         cardbankresiver.Amount+=transaction.Amount;
              
-            unitOfWork.GetRepo<CardBank, string>().Update(cardbankresiver);
+            unitOfWork.GetRepo<CardBank,  string >().Update(cardbankresiver);
 
 
                         var trans=mapper.Map<Transactions>(transaction);
-            trans.Id=Guid.NewGuid().ToString(); 
+            trans.Id=Guid.NewGuid(); 
             trans.Fee=fee;
             trans.status=true;
 
@@ -115,9 +115,9 @@ namespace Services
 
                 }
 
-        public async Task<Result<IEnumerable< ReturnResultTrans>>> GetAllByAdminAsync(string Adminid)
+        public async Task<Result<IEnumerable< ReturnResultTrans>>> GetAllByAdminAsync(  string Adminid)
         {
-            var user = await  userManager.FindByIdAsync(Adminid);
+            var user = await  userManager.FindByIdAsync(Adminid.ToString());
 
             if (user is null) return Error.NotFound();
 
@@ -127,7 +127,7 @@ namespace Services
             {
                 var transspec = new TransSpecification(true, user.bankid);
 
-                var x = await unitOfWork.GetRepo<Transactions, string>().GetAllSpecificationAsync(transspec);
+                var x = await unitOfWork.GetRepo<Transactions,  Guid>().GetAllSpecificationAsync(transspec);
                 if (x is null) return Error.NotFound();
                 var result = mapper.Map<IEnumerable<ReturnResultTrans>>(x);
 
@@ -135,6 +135,25 @@ namespace Services
             }
             return Error.UnAuthorized();
              
+        }
+
+        public async Task<Result<IEnumerable<ReturnResultTrans>>> GetAllByCard(  string id)
+        {
+            if (string.IsNullOrWhiteSpace(id.ToString())) return Error.NotFound($"{id} is not found  ");
+
+            var data =  await cardBankServices.GetByIdAsync(id);
+            if (data is null || !data.IsSuccess)
+                return Error.NotFound($"Card {id} not found");
+
+
+            var spec = new TransSpecification(data.Value.Id);
+            var trans = await unitOfWork.GetRepo<Transactions,  Guid>().GetAllSpecificationAsync(spec);
+            if (trans == null || !trans.Any())
+                return Result<IEnumerable<ReturnResultTrans>>.Ok(new List<ReturnResultTrans>());
+            var x = mapper.Map<IEnumerable<ReturnResultTrans>>(trans);
+
+            return Result<IEnumerable<ReturnResultTrans>>.Ok(x);
+
         }
     }
 }

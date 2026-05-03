@@ -1,0 +1,346 @@
+﻿@page "/ByteBankHome"
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+@using Shared
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject CardBankServices cardBankServices
+@inject NavigationManager navigation
+@inject TransactionServicess transactionServicess
+
+
+
+<!-- HERO -->
+<div class="hero container text-center mt-4">
+    <h1>Welcome back 👋</h1>
+    <p>Manage your banking in a simple modern way</p>
+</div>
+
+
+@if (result?.Errors != null)
+{
+    foreach (var error in result.Errors)
+    {
+        <div class="text-danger">
+            <b>@error.Key</b>
+
+            @foreach (var msg in error.Value)
+            {
+                <div>- @msg</div>
+            }
+        </div>
+    }
+}
+
+@if (role == "User")
+{
+     
+
+    <!-- CARDS -->
+    <div class="container mt-5">
+
+        <div class="section-header">
+            <h3>My Cards</h3>
+            <span>Overview of your active cards</span>
+        </div>
+
+        @if (cards == null)
+        {
+            <p>Loading...</p>
+        }
+        else if (!cards.Any())
+        {
+            <p>No cards found</p>
+        }
+        else
+        {
+            <div class="row mt-3">
+
+                @foreach (var card in cards)
+                {
+                    <div class="col-md-4 mb-3">
+
+                        <div class="card-ui">
+
+                            <div class="card-top">
+                                <h5>@card.bank.Name</h5>
+                                <span>Active</span>
+                            </div>
+
+                            <p>@card.Name</p>
+
+                            <button @onclick="() => showcarddetails(card.Id.ToString())">
+                                View details
+                            </button>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        }
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="container mt-5">
+
+        <div class="section-header">
+            <h3>Quick Actions</h3>
+            <span>Do your operations fast</span>
+        </div>
+
+        <div class="row g-3">
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="action-card">
+                    <h5>Create Card</h5>
+                    <p>Open a new card instantly</p>
+                    <button @onclick="CreatCard">Create</button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="action-card">
+                    <h5>Send Money</h5>
+                    <p>Create transaction between cards</p>
+                    <button @onclick="CreatTransaction">Send</button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="action-card">
+                    <h5>Show My Transaction</h5>
+                    <p>Show transaction</p>
+                    <button @onclick="ShowTransaction">Show</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+}
+else
+{
+    <p>Loading....... </p>
+    @if (role=="Admin") {
+
+        <table class="table custom-table">
+
+            <thead>
+                <tr>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Fee</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var tran in trans)
+                {
+                    <tr>
+                        <td>@tran.SenderCard</td>
+                        <td>@tran.ReciverCard</td>
+                        <td>@tran.Amount</td>
+
+                        <td>
+                            <span class="@(tran.status == true ? "ok" : "fail")">
+                                @tran.status
+                            </span>
+                        </td>
+
+                        <td>@tran.Fee</td>
+                        <td>@tran.Total</td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+
+    }
+
+}
+@code {
+
+    public List<ResultCreateCardDto> cards = new();
+    public string role { get; set; }
+    public List<ReturnResultTrans> trans { get; set; } = new();
+    public ApiResult<IEnumerable<ResultCreateCardDto>> result { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await sessionStorage.GetItemAsync<string>("Token");
+
+        var handler = new JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(token);
+        role = jwt.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+        Console.WriteLine($"ROLE = {role}");
+
+        if (role == "User")
+        {
+            cardBankServices.SetToken(token);
+            result= (await cardBankServices.GetAllUser());
+            if (result.IsSuccess)
+            {
+                cards = result.Data.ToList();
+            }
+
+        }
+        else if (role == "Admin")
+        {
+            transactionServicess.SetToken(token);
+
+            // 👇 1. هات الداتا القديمة
+            trans.Clear();
+            trans.AddRange(await transactionServicess.GetOldTransactions());
+ 
+            Console.WriteLine($"COUNT = {trans?.Count}");
+            await InvokeAsync(StateHasChanged);
+            // 👇 2. شغل SignalR
+            var bankId = jwt.Claims.FirstOrDefault(x => x.Type == "bankid")?.Value ?? "1";
+
+            await transactionServicess.StartSignalR(
+                token,
+                bankId,
+                OnNewTransaction
+            );
+        }
+    }
+
+    // 👇 لما transaction جديدة تيجي
+    private void OnNewTransaction(ReturnResultTrans newTrans)
+    {
+        trans.Insert(0, newTrans);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async Task showcarddetails(string id)
+    {
+        await sessionStorage.SetItemAsync("cardId", id);
+        navigation.NavigateTo("/GetCard");
+    }
+
+    public void CreatCard() => navigation.NavigateTo("/CreatCard");
+
+    public void CreatTransaction() => navigation.NavigateTo("/CreateTransaction");
+    public void ShowTransaction() => navigation.NavigateTo("/ShowAllTrans");
+
+    // // 👇 مهم عشان تقفل الاتصال
+    // public async ValueTask DisposeAsync()
+    // {
+    //     await transactionServicess.StopSignalR();
+    // }
+}
+
+<style>
+
+    /* BACKGROUND */
+    body {
+        background: #f5f7fb;
+        font-family: 'Segoe UI';
+        color: #1f2937;
+    }
+
+    /* NAVBAR */
+    .navbar {
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .brand {
+        font-weight: bold;
+        font-size: 20px;
+        color: #2563eb;
+    }
+
+    /* LINKS */
+    a {
+        text-decoration: none;
+        color: #374151;
+    }
+
+        a:hover {
+            color: #2563eb;
+        }
+
+    /* HERO */
+    .hero h1 {
+        font-weight: 700;
+    }
+
+    .hero p {
+        color: #6b7280;
+    }
+
+    /* SECTION HEADER */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 10px;
+    }
+
+        .section-header h3 {
+            font-weight: 600;
+        }
+
+    /* CARD UI */
+    .card-ui {
+        background: white;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        transition: 0.3s;
+    }
+
+        .card-ui:hover {
+            transform: translateY(-6px);
+        }
+
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .card-top span {
+            font-size: 12px;
+            color: #10b981;
+        }
+
+    /* ACTION CARD */
+    .action-card {
+        background: linear-gradient(135deg, #ffffff, #f3f4f6);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        transition: 0.3s;
+    }
+
+        .action-card:hover {
+            transform: translateY(-6px);
+        }
+
+    /* BUTTON */
+    button {
+        margin-top: 10px;
+        background: #2563eb;
+        border: none;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+    p {
+        color: #6b7280;
+    }
+
+</style>

@@ -45,85 +45,105 @@ namespace Services
 
 
 
-            //var userdto = new UserDto()
-            //{
-            //    Email =   user .Email,
-            //    DisplayName = user.UserName,
-            //    Token = await CreateTokenAsync(user)
-
-            //};
-            //return Result<UserDto>.Ok(userdto);
-
-            var token = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
-            await emailServices.SendEmailAsync(
-                user.Email,
-                "OTP Verification (ByteBank.Web)",
-                $"Your login  OTP From ByteBank.Web is {token}"
-                );
-            return Result<UserDto>.Ok(new UserDto
-            {
-                Email = user.Email,
-                DisplayName = user.UserName,
-                Token="Please Go to VerfiyOTp To Recive Your Token :)"
-            });
-
-        }
-
-
-
-        public async Task<Result<UserDto>> VerifyOtpAsync(string email, string code)
-        {
-            var user =await userManager.FindByEmailAsync (email);
-            if (user is null)
-                return   Result<UserDto>.Failure(Error.NotFound());
-            var Isvalid = await userManager.VerifyTwoFactorTokenAsync(user, "Email", code);
-            if (!Isvalid)
-            {
-                return Result<UserDto>.Failure(Error.NotFound());   
-            }
-            return new UserDto()
+            var userdto = new UserDto()
             {
                 Email = user.Email,
                 DisplayName = user.UserName,
                 Token = await CreateTokenAsync(user)
+
             };
+            return Result<UserDto>.Ok(userdto);
+
+            //var token = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
+            //await emailServices.SendEmailAsync(
+            //    user.Email,
+            //    "OTP Verification (ByteBank.Web)",
+            //    $"Your login  OTP From ByteBank.Web is {token}"
+            //    );
+            //return Result<UserDto>.Ok(new UserDto
+            //{
+            //    Email = user.Email,
+            //    DisplayName = user.UserName,
+            //    Token="Please Go to VerfiyOTp To Recive Your Token :)"
+            //});
 
         }
+
+
+
+        //public async Task<Result<UserDto>> VerifyOtpAsync(string email, string code)
+        //{
+        //    var user =await userManager.FindByEmailAsync (email);
+        //    if (user is null)
+        //        return   Result<UserDto>.Failure(Error.NotFound());
+        //    var Isvalid = await userManager.VerifyTwoFactorTokenAsync(user, "Email", code);
+        //    if (!Isvalid)
+        //    {
+        //        return Result<UserDto>.Failure(Error.NotFound());   
+        //    }
+        //    return new UserDto()
+        //    {
+        //        Email = user.Email,
+        //        DisplayName = user.UserName,
+        //        Token = await CreateTokenAsync(user)
+        //    };
+
+        //}
 
         public async Task<Result<UserDto>> RegisterAsync(RegisterDto register)
         {
+            var existingUser = await userManager.FindByEmailAsync(register.Email);
+            if (existingUser != null)
+            {
+                return Result<UserDto>.Failure(new List<Error>
+        {
+            Error.Validation("Email", "Email already exists")
+        });
+            }
 
-        
+            if (register.address == null)
+            {
+                return Result<UserDto>.Failure(new List<Error>
+        {
+            Error.Validation("Address", "Address is required")
+        });
+            }
 
-            var addrees = mapper.Map<AddressDto, Address>(register.address);
-            var user = new ApplicationUser()
+            var address = mapper.Map<Address>(register.address);
+
+            var user = new ApplicationUser
             {
                 Email = register.Email,
-                UserName = register.Name,
+                UserName = register.Email,
                 PhoneNumber = register.Phone,
-                address = addrees,
-
-
+                address = address
             };
 
-            var UserPassword = await userManager.CreateAsync(user, register.Password);
-            if (UserPassword.Succeeded)
-            {
-                await userManager.AddToRoleAsync(user, "User");
-                var userr = new UserDto()
-                {
-                    Email = register.Email,
-                    Token = await CreateTokenAsync(user),
-                    DisplayName = register.Name
-                };
-                return Result<UserDto>.Ok(userr);
-            }
-            var x = UserPassword.Errors.Select(x => Error.Validation(x.Code, x.Description)).ToList();
-            return Result<UserDto>.Failure(x);
+            var result = await userManager.CreateAsync(user, register.Password);
 
+            if (!result.Succeeded)
+            {
+                return Result<UserDto>.Failure(
+                    result.Errors.Select(e => Error.Validation(e.Code, e.Description)).ToList()
+                );
+            }
+
+            if (!await roleManager.RoleExistsAsync("User"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("User"));
+            }
+
+            await userManager.AddToRoleAsync(user, "User");
+
+            return Result<UserDto>.Ok(new UserDto
+            {
+                Email = register.Email,
+                DisplayName = register.Name,
+                Token = await CreateTokenAsync(user)
+            });
         }
 
-       
+
 
         private async Task<string> CreateTokenAsync( ApplicationUser user)
         {

@@ -14,7 +14,7 @@ namespace ServicesAbstraction
 
         public Task<Result<UserDto>> loginAsync(LoginDto login);
         public Task<Result<UserDto>>  RegisterAsync(RegisterDto login);
-        public Task<Result<UserDto>> VerifyOtpAsync( string email , string code);
+        //public Task<Result<UserDto>> VerifyOtpAsync( string email , string code);
 
     }
 }

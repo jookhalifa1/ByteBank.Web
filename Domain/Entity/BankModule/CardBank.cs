@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entity.BankModule
 {
-     public class CardBank:BaseEntity< string>
+     public class CardBank:BaseEntity<string>
     {
         public string Name { get; set; } = default!;
         public DateTime ExpireDate { get; set; }=DateTime.Now.AddYears(5);

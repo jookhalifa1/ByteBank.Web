@@ -19,6 +19,9 @@ namespace Services.MappingProfile
             CreateMap<CreatBankDto, CardBank>().ReverseMap();
             CreateMap<TransactionDto, Transactions>().ReverseMap();
             CreateMap<Transactions, ReturnResultTrans>().ReverseMap();
+            CreateMap<CardBank, ResultCreateCardDto>()
+   .ForMember(dest => dest.bank,
+       opt => opt.MapFrom(src => src.bank)).ReverseMap();
         }
     }
 }

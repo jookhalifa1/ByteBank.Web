@@ -1,0 +1,57 @@
+﻿
+@inject AuthenticationServieces servieces
+@if (error is null)
+{
+    <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+        <div class="card shadow-lg p-4" style="width: 400px; border-radius: 15px;">
+
+            <EditForm Model="otp" OnValidSubmit="Save">
+                <label class="form-label">Code</label>
+                <InputText @bind-Value="otp.Code"  class="form-control" type="password" placeholder="Enter Your Code" ></InputText>
+                <button type="submit" class="btn btn-primary w-100">Submit</button>
+            </EditForm>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        @error
+
+    </div>
+}
+
+ 
+
+@code {
+
+    [Parameter]
+
+    public string email { get; set; }
+
+    public OtpDto otp { get; set; } = new OtpDto();
+
+    public string error;
+    [Inject]
+    public NavigationManager navigationManager { get; set; }
+
+    public  async Task Save()
+    {
+        try
+        {
+            otp.Email = email;
+            var result = await servieces.OtpVerfiy(otp);
+
+            await   sessionStorage.SetItemAsStringAsync("Token", result.Token);
+
+            
+            Console.WriteLine($"The real Token is {result.Token} and name is {result.DisplayName}");
+            navigationManager.NavigateTo("/ByteBankHome");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+}

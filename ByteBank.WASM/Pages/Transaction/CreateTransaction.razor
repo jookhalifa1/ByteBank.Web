@@ -1,0 +1,259 @@
+﻿ @page "/CreateTransaction"
+@using Shared
+
+@inject TransactionServicess servicess
+@inject CardBankServices Cardservices
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<div class="page">
+
+    <div class="card-ui">
+
+        <h2>New Transaction 💸</h2>
+        <p class="sub">Send money between your cards safely</p>
+
+                     @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="error-box">
+                    ⚠ @error
+                </div>
+            }
+
+            @if (apiResult?.Errors != null)
+            {
+                <div class="error-box">
+                    @foreach (var errorItem in apiResult.Errors)
+                    {
+                         //   <div>• @errorItem.Key</div>
+
+                        @foreach (var msg in errorItem.Value)
+                        {
+                            <div>• @msg</div>
+                        }
+                    }
+                </div>
+            }
+        else{
+
+        <EditForm Model="transaction" OnValidSubmit="Save">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <!-- SENDER -->
+            <div class="field">
+                <label>Sender Card</label>
+                <InputSelect @bind-Value="transaction.SenderCard" class="input">
+                    <option value="">Select Card</option>
+                    @foreach (var card in Mycards)
+                    {
+                        <option value="@card.Id">@card.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="()=>transaction.SenderCard" />
+            </div>
+
+            <!-- RECEIVER -->
+            <div class="field">
+                <label>Receiver Card</label>
+                <InputText @bind-Value="transaction.ReciverCard "
+           class="input"
+           placeholder="Enter receiver card number (optional suggestion shown below)" />
+           <div class="hint">
+    Suggested: @suggestedCard 
+</div>
+                 <ValidationMessage For="()=>transaction. ReciverCard" />
+            </div>
+
+            <!-- AMOUNT -->
+            <div class="field">
+                <label>Amount</label>
+                <InputNumber @bind-Value="transaction.Amount" class="input" />
+                 <ValidationMessage For="()=>transaction. Amount" />
+            </div>
+
+            <button class="btn" disabled="@loading">
+                @(loading ? "Processing..." : "Send Money")
+            </button>
+
+        </EditForm>
+        }
+
+    </div>
+
+</div>
+
+@if (flag)
+{
+    <CheckTransaction resultTrans="resultTrans" />
+}
+@code {
+
+    public TransactionDto transaction { get; set; } = new  TransactionDto () ;
+
+    public IEnumerable<ResultCreateCardDto> Mycards { get; set; } = new List<ResultCreateCardDto>();
+    public ApiResult<  IEnumerable<ResultCreateCardDto>> Result { get; set; }  
+
+    public string token;
+    public string error;
+    public ReturnResultTrans resultTrans { get; set; } = new ReturnResultTrans();
+    public string suggestedCard="1111222233334444";
+
+
+    public ApiResult<ReturnResultTrans> apiResult { get; set; }
+    public bool flag = false;
+    public bool  loading = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        token = await sessionStorage.GetItemAsync<string>("Token");
+        Cardservices.SetToken(token);
+
+        Result= await Cardservices.GetAllUser();
+        if (Result.IsSuccess)
+        {
+            Mycards = Result.Data.ToList();
+
+            if (Mycards is null || Mycards.Count() == 0)
+            {
+                error = "You Dont Have Any  Cards";
+            }
+        }
+
+
+    }
+
+    public async Task Save()
+    {
+
+        try
+    {
+        loading = true;
+        error = null;
+        apiResult = null;
+        flag = false;
+
+        apiResult = await servicess.CreateTrans(transaction);
+
+        if (apiResult?.IsSuccess == true && apiResult.Data != null)
+        {
+            resultTrans = apiResult.Data;
+            flag = true;
+        }
+        else
+        {
+            error = apiResult?.Message ?? "Transaction failed";
+        }
+    }
+    catch (Exception ex)
+    {
+        error = ex.Message;
+    }
+    finally
+    {
+        loading = false;
+    }
+
+    }
+
+
+
+
+}
+<style>
+    /* PAGE */
+.page {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f7fb;
+    font-family: 'Segoe UI';
+}
+
+/* CARD */
+.card-ui {
+    width: 420px;
+    background: white;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    animation: fadeUp 0.4s ease;
+}
+
+.card-ui h2 {
+    margin-bottom: 5px;
+}
+
+.sub {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* FIELD */
+.field {
+    margin-bottom: 15px;
+}
+
+label {
+    font-size: 13px;
+    color: #374151;
+}
+
+/* INPUTS */
+.input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    outline: none;
+    transition: 0.2s;
+}
+
+.input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* BUTTON */
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* ERROR */
+.error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+/* ANIMATION */
+@@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+
+
+    .error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    animation: fadeUp 0.3s ease;
+    font-size: 13px;
+}
+}
+</style>

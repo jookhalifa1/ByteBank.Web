@@ -1,0 +1,56 @@
+﻿@using Shared
+
+@if (resultTrans == null)
+{
+    <p class="loading">Loading...</p>
+}
+else if (resultTrans.status )
+{
+    <div class="alert alert-success custom-card">
+        <h5>Transaction Done Successfully ✅</h5>
+
+        <hr />
+
+        <p><strong>Total:</strong> @resultTrans.Total</p>
+        
+        <h6>Sender:</h6>
+        <p>@resultTrans.SenderCard</p>
+
+        <h6>Receiver:</h6>
+        <p>@resultTrans.ReciverCard</p>
+        <h6>Fee:</h6>
+        <p>@resultTrans.Fee</p>
+        <h6>Amount:</h6>
+        <p>@resultTrans.Amount</p>
+
+    </div>
+}
+else
+{
+    <div class="alert alert-danger custom-card">
+        <h5>Transaction Failed ❌</h5>
+        <p>Invalid transaction data or operation failed.</p>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public ReturnResultTrans resultTrans { get; set; }
+}
+<style>
+.custom-card {
+border-radius: 12px;
+padding: 15px;
+animation: fadeUp 0.3s ease;
+}
+
+.loading {
+text-align: center;
+color: gray;
+}
+
+@@keyframes fadeUp {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+</style>

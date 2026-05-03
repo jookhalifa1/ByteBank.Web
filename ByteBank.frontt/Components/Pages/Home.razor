@@ -1,0 +1,70 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<EditForm Model="loginModel"
+          OnValidSubmit="HandleLogin"
+          FormName="LoginForm">
+
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <InputText class="form-control"
+                   @bind-Value="loginModel.Email"
+                   placeholder="Email" />
+    </div>
+
+    <div class="mb-3">
+        <InputText class="form-control"
+                   @bind-Value="loginModel.Password"
+                   type="password"
+                   placeholder="Password" />
+    </div>
+
+    <button class="btn btn-primary w-100" disabled="@isLoading">
+        Login
+    </button>
+
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginRequest loginModel { get; set; } = new();
+
+    private bool isLoading;
+    private string? errorMessage;
+
+    async Task HandleLogin()
+    {
+        
+
+        var response = await Http.PostAsJsonAsync("api/Authentication/Login", loginModel);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            errorMessage = "Invalid email or password";
+            return;
+        }
+
+        var data = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+      
+
+        Nav.NavigateTo($"/OtpVerfication?email={loginModel.Email}");
+    }
+
+    public class LoginRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class LoginResponse
+    {
+        public string Token { get; set; }
+    }
+}

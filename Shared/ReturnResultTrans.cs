@@ -12,11 +12,13 @@ namespace Shared
     {
         public string SenderCard { get; set; }
      
+        public ResultCreateCardDto SenderCardBank { get; set; }
 
 
         public string ReciverCard { get; set; }
 
-    
+        public ResultCreateCardDto ReciverCardBank { get; set; }
+
 
 
 

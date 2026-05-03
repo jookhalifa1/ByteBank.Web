@@ -9,7 +9,7 @@ namespace Shared.ResultPattern
      public class Result
     {
         public bool IsSuccess => Errors.Count == 0;
-        public bool IsFailure => !IsFailure;
+        public bool IsFailure => !IsSuccess;
         public List<Error> Errors { get; } = [];
 
 

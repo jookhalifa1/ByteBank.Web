@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Services.Specificatinos
 {
-     public class TransSpecification:BaseSpecifications<Transactions,string>
+     public class TransSpecification:BaseSpecifications<Transactions, Guid>
     {
         public TransSpecification():base(null)
         {
@@ -23,6 +23,13 @@ namespace Services.Specificatinos
             AddIclude(x => x.SenderCardBank);
             AddIclude(x => x.ReciverCardBank);
 
+
+        }
+
+        public TransSpecification(  string cardid) : base(x => x.SenderCard == cardid)
+        {
+            AddIclude(x => x.SenderCardBank);
+            AddIclude(x => x.ReciverCardBank);
 
         }
     }

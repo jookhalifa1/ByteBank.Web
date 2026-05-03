@@ -30,15 +30,15 @@ namespace Presentation.Controllers
 
             return HandelRequest(result);
         }
-        [HttpPost("VerfiyOTP")]
+        //[HttpPost("VerfiyOTP")]
 
-        public async Task<ActionResult<UserDto>> VerfiyOTP( string  email,string code)
-        {
+        //public async Task<ActionResult<UserDto>> VerfiyOTP( OtpDto otp)
+        //{
            
             
-            var result = await authenticationServices.VerifyOtpAsync(   email, code);
-            return HandelRequest(result);
-        }
+        //    var result = await authenticationServices.VerifyOtpAsync( otp.Email , otp.Code);
+        //    return HandelRequest(result);
+        //}
 
 
 

@@ -1,0 +1,67 @@
+﻿@page "/OtpVerfication"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<EditForm Model="code" OnValidSubmit="HandelRequest">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3" >
+         <InputText class="form-control" @bind-Value="code.Code" placeholder="Enter Your Otp" />
+        
+    </div>
+
+
+    <button class="btn btn-primary w-100"  >
+         Verfiy
+    </button>
+
+</EditForm>
+
+
+
+
+@code {
+
+
+
+    private OtpModel code = new();
+    private string? errorMessage;
+    protected override void OnInitialized()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        code.email = query["email"];
+    }
+
+    async Task HandelRequest()
+    {
+        var responce = await Http.PostAsync($"api/Authentication/VerfiyOTP?email={code.email}&code={code.Code}", null);
+        if (!responce.IsSuccessStatusCode)
+        {
+            errorMessage = "Invalid email or password";
+            return;
+        }
+        var data = await responce.Content.ReadFromJsonAsync<Responce>();
+        await JS.InvokeVoidAsync("localStorage.setItem", "token", data?.Token);
+        Nav.NavigateTo($"/dashboard");
+    }
+
+
+
+    public class OtpModel
+    {
+        public string? email { get; set; }
+        public string? Code { get; set; }
+       
+    }
+
+    public class  Responce
+    {
+        public string? Token { get; set; }
+    }
+}
